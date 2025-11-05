@@ -124,7 +124,15 @@ Type 'help' for more options.
             print(f"\n📋 Execution Plan:")
             for i, phase in enumerate(plan.phases, 1):
                 phase_dict = phase if isinstance(phase, dict) else phase.__dict__
-                phase_name = phase_dict.get('phase_name', f'Phase {i}')
+                # Ensure phase_dict is actually a dictionary before accessing
+                if isinstance(phase_dict, dict):
+                    # Ensure proper string conversion for attribute names
+                    if isinstance(phase_dict, dict):
+                        phase_name = str(phase_dict.get('phase_name', f'Phase {i}'))
+                    else:
+                        phase_name = str(phase_dict) if phase_dict is not None else f'Phase {i}'
+                else:
+                    phase_name = f'Phase {i}'
                 role = phase_dict.get('required_role', 'unknown')
                 duration = phase_dict.get('estimated_duration', '?')
                 

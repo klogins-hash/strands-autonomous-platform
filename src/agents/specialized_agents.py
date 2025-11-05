@@ -170,7 +170,13 @@ class BaseSpecializedAgent:
         """Ensure we have all necessary tools, build if needed"""
         required_tools = requirements.get("tools_required", [])
         
-        for tool_name in required_tools:
+        for tool_item in required_tools:
+            # Handle both string and dict formats
+            if isinstance(tool_item, dict):
+                tool_name = tool_item.get("name", str(tool_item))
+            else:
+                tool_name = str(tool_item)
+            
             if not hasattr(self, tool_name):
                 # Build the tool autonomously
                 await self.tool_builder.build_tool(tool_name, requirements, self.sandbox_id)
@@ -197,13 +203,16 @@ class BaseSpecializedAgent:
     
     @tool
     async def file_reader(self, file_path: str) -> str:
-        """Read file contents from sandbox"""
-        return await self.sandbox_manager.read_file(self.sandbox_id, file_path)
+        """Read file contents"""
+        # Work locally since E2B is disabled
+        return await code_editor.read_file(file_path)
     
     @tool
     async def file_writer(self, file_path: str, content: str) -> bool:
-        """Write content to file in sandbox"""
-        return await self.sandbox_manager.write_file(self.sandbox_id, file_path, content)
+        """Write content to file"""
+        # Work locally since E2B is disabled
+        result = await code_editor.create_file(file_path, content)
+        return result.get("success", False)
     
     @tool
     async def log_progress(self, message: str, progress_percentage: float = None):

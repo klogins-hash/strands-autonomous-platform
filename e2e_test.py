@@ -86,7 +86,18 @@ async def main():
         print(f"\n📋 Execution Phases:")
         for i, phase in enumerate(execution_plan.phases, 1):
             phase_dict = phase if isinstance(phase, dict) else phase.__dict__
-            print(f"   {i}. {phase_dict.get('phase_name', 'Phase')} ({phase_dict.get('required_role', '?')})")
+            # Ensure phase_dict is actually a dictionary before accessing
+            if isinstance(phase_dict, dict):
+                # Ensure we're working with proper attribute names as strings
+                if isinstance(phase_dict, dict):
+                    phase_name = str(phase_dict.get('phase_name', 'Phase'))
+                else:
+                    phase_name = str(phase_dict) if phase_dict is not None else 'Phase'
+                required_role = phase_dict.get('required_role', '?')
+            else:
+                phase_name = str('Phase')
+                required_role = '?'
+            print(f"   {i}. {phase_name} ({required_role})")
         
         print("\n" + "=" * 80)
         print("🚀 Starting Execution...")

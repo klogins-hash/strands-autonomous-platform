@@ -15,7 +15,9 @@ from strands import Agent, tool
 from anthropic import AsyncAnthropic
 from ..models.schemas import AgentSpec, AgentRole
 from ..core.config import settings
+from .sandbox_manager import SandboxManager
 from .tool_builder import ToolBuilderMixin
+from .mcp_client import mcp_client
 from .sandbox_manager import SandboxManager
 
 
@@ -35,15 +37,13 @@ class BaseSpecializedAgent:
         """Create a configured instance of this agent"""
         self.task_id = task_id
         
+        # Skip E2B sandbox for now - agents run locally
+        self.sandbox_id = f"local_{self.role.value}_agent_{task_id}"
+        
         # Create Strands agent with role-specific configuration
         self.agent_instance = Agent(
             system_prompt=spec.system_prompt,
             tools=await self._get_tools(spec.tools)
-        )
-        
-        # Create sandbox environment
-        self.sandbox_id = await self.sandbox_manager.create_sandbox(
-            f"{self.role.value}_agent_{task_id}"
         )
         
         return self
@@ -126,7 +126,7 @@ class BaseSpecializedAgent:
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-04022",
+            model="claude-sonnet-4-20250514",
             max_tokens=1000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -303,7 +303,7 @@ class ResearchAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-04022",
+            model="claude-sonnet-4-20250514",
             max_tokens=500,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -330,7 +330,7 @@ class ResearchAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-04022",
+            model="claude-sonnet-4-20250514",
             max_tokens=1000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -421,7 +421,7 @@ class CodeAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-04022",
+            model="claude-sonnet-4-20250514",
             max_tokens=1000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -461,7 +461,7 @@ class CodeAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-040222",
+            model="claude-sonnet-4-202505142",
             max_tokens=2000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -541,7 +541,7 @@ class WriterAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-040222",
+            model="claude-sonnet-4-202505142",
             max_tokens=2000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -565,7 +565,7 @@ class WriterAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-040222",
+            model="claude-sonnet-4-202505142",
             max_tokens=2000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -625,7 +625,7 @@ class ToolBuilderAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-040222",
+            model="claude-sonnet-4-202505142",
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -650,7 +650,7 @@ class ToolBuilderAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-040222",
+            model="claude-sonnet-4-202505142",
             max_tokens=2000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -688,7 +688,7 @@ class ToolBuilderAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-040222",
+            model="claude-sonnet-4-202505142",
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}]
         )

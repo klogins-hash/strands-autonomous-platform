@@ -11,6 +11,14 @@ class Settings(BaseSettings):
     # AI Models
     anthropic_api_key: str
     openai_api_key: str
+    openrouter_api_key: str = ""
+    cohere_api_key: str = ""
+    
+    # Specialized Services
+    cartesia_api_key: str = ""
+    mem0_api_key: str = ""
+    firecrawl_api_key: str = ""
+    tavily_api_key: str = ""
     
     # Object Storage (MinIO)
     minio_endpoint: str = "localhost:9000"

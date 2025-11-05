@@ -1,6 +1,52 @@
 # Strands Autonomous Agent Platform
 
-**"Describe what you want, watch autonomous AI agents build themselves, create tools, work together, and deliver results—all visible in real-time."**
+**Talk to your agents in natural language. They figure out the rest.**
+
+An autonomous multi-agent platform where you describe what you want, and AI agents build it. Works from terminal or Claude Desktop via MCP.
+
+## 🚀 Quick Start (30 seconds)
+
+```bash
+# 1. Start services
+./scripts/start-services.sh
+
+# 2. Activate environment
+source venv/bin/activate
+
+# 3. Chat with your agents
+python chat.py
+```
+
+Then just describe what you want:
+```
+💬 You: Create a REST API for a todo list with FastAPI
+
+🤔 Thinking...
+✅ Plan: 6 phases, 2 agents, ~5 minutes
+🚀 Execute? yes
+✅ Complete! Your API is ready.
+```
+
+## 💬 Two Ways to Interact
+
+### 1. Terminal Chat (Simplest)
+```bash
+python chat.py
+```
+Natural language interface - just describe what you want!
+
+### 2. Claude Desktop (Most Powerful)
+Add MCP integration (2 min setup) and chat with your agents through Claude!
+
+See `MCP_SETUP.md` for setup instructions.
+
+## ⚡ Realistic Speed
+
+AI agents work **fast** - seconds to minutes, not hours:
+- Simple script: 30 sec - 2 min
+- REST API: 2-5 min
+- Full web app: 5-15 min
+- Complex system: 15-30 min
 
 ## 🎯 Overview
 

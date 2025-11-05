@@ -86,7 +86,7 @@ class ToolBuilderMixin:
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-04022",
+            model="claude-sonnet-4-20250514",
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -114,7 +114,7 @@ class ToolBuilderMixin:
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-040222",
+            model="claude-sonnet-4-202505142",
             max_tokens=1000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -144,7 +144,7 @@ class ToolBuilderMixin:
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-040222",
+            model="claude-sonnet-4-202505142",
             max_tokens=2500,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -180,7 +180,7 @@ class ToolBuilderMixin:
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-3-sonnet-040222",
+            model="claude-sonnet-4-202505142",
             max_tokens=2000,
             messages=[{"role": "user", "content": prompt}]
         )

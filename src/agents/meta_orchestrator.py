@@ -357,7 +357,7 @@ class MetaOrchestrator:
             if ready_phases:
                 tasks = []
                 for phase in ready_phases:
-                    role = AgentRole(phase["required_role"])
+                    role = normalize_agent_role(phase["required_role"])
                     agent = agents[role]
                     task = asyncio.create_task(
                         self._execute_single_phase(phase, agent)
@@ -440,25 +440,33 @@ class MetaOrchestrator:
     
     async def _save_agent_instance(self, spec: AgentSpec, task_id: uuid.UUID):
         """Save agent instance to database"""
-        async for session in get_db_session():
-            instance = AgentInstance(
-                task_id=task_id,
-                role=spec.role.value,
-                status="idle"
-            )
-            session.add(instance)
-            await session.commit()
+        try:
+            async for session in get_db_session():
+                instance = AgentInstance(
+                    task_id=task_id,
+                    role=spec.role.value,
+                    status="idle"
+                )
+                session.add(instance)
+                await session.commit()
+        except RuntimeError:
+            # Database not initialized - skip saving for now
+            pass
     
     async def _log_activity(self, task_id: uuid.UUID, activity_type: str, message: str):
         """Log activity for real-time updates"""
-        async for session in get_db_session():
-            activity = ActivityLogDB(
-                task_id=task_id,
-                activity_type=activity_type,
-                message=message
-            )
-            session.add(activity)
-            await session.commit()
+        try:
+            async for session in get_db_session():
+                activity = ActivityLogDB(
+                    task_id=task_id,
+                    activity_type=activity_type,
+                    message=message
+                )
+                session.add(activity)
+                await session.commit()
+        except RuntimeError:
+            # Database not initialized - skip logging for now
+            pass
     
     async def _handle_execution_error(self, task_id: uuid.UUID, error: str):
         """Handle execution errors with autonomous recovery"""

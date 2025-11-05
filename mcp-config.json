@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "strands-agents": {
+      "command": "python",
+      "args": [
+        "/Users/franksimpson/CascadeProjects/strands-autonomous-platform/mcp_server.py"
+      ],
+      "env": {
+        "PYTHONPATH": "/Users/franksimpson/CascadeProjects/strands-autonomous-platform"
+      }
+    }
+  }
+}

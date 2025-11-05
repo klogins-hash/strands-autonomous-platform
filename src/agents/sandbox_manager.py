@@ -45,11 +45,8 @@ class SandboxManager:
             if len(self.active_sandboxes) >= self.max_concurrent:
                 await self._cleanup_idle_sandboxes()
             
-            # Create E2B sandbox (updated API - no template parameter)
-            sandbox = await asyncio.to_thread(
-                Sandbox,
-                timeout=self.default_timeout
-            )
+            # Create E2B sandbox (updated API - use Sandbox.create())
+            sandbox = await asyncio.to_thread(Sandbox.create)
             
             sandbox_id = f"sandbox_{agent_id}_{uuid.uuid4().hex[:8]}"
             

@@ -15,10 +15,11 @@ from strands import Agent, tool
 from anthropic import AsyncAnthropic
 from ..models.schemas import AgentSpec, AgentRole
 from ..core.config import settings
+from ..core.utils import extract_json_from_response
 from .sandbox_manager import SandboxManager
 from .tool_builder import ToolBuilderMixin
 from .mcp_client import mcp_client
-from .sandbox_manager import SandboxManager
+from .code_editor import code_editor
 
 
 class BaseSpecializedAgent:
@@ -105,6 +106,38 @@ class BaseSpecializedAgent:
         except Exception as e:
             await self._update_status("error")
             await self._log_error(f"Phase execution failed: {str(e)}")
+            
+            # Try autonomous recovery
+            try:
+                await self._log_activity("🔧 Attempting autonomous recovery...")
+                fix = await code_editor.analyze_and_fix_error(
+                    error_message=str(e),
+                    context={
+                        "phase": phase_description,
+                        "role": self.role.value,
+                        "requirements": phase_config
+                    }
+                )
+                
+                if fix.get("confidence", 0) > 0.7:
+                    await self._log_activity(f"   Solution found: {fix.get('solution')}")
+                    
+                    # Apply the fix
+                    result = await code_editor.apply_fix(fix)
+                    
+                    if result.get("success"):
+                        await self._log_activity("   ✅ Fix applied! Retrying phase...")
+                        
+                        # Retry the phase
+                        return await self.execute_phase(phase_description, phase_config)
+                    else:
+                        await self._log_activity(f"   ❌ Could not apply fix: {result.get('error')}")
+                else:
+                    await self._log_activity(f"   ⚠️  Low confidence fix ({fix.get('confidence')}), escalating...")
+            
+            except Exception as recovery_error:
+                await self._log_activity(f"   ❌ Recovery failed: {str(recovery_error)}")
+            
             raise
     
     async def _analyze_phase_requirements(self, description: str, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -127,11 +160,11 @@ class BaseSpecializedAgent:
         
         response = await self.anthropic.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=1000,
+            max_tokens=4000,
             messages=[{"role": "user", "content": prompt}]
         )
         
-        return json.loads(response.content[0].text)
+        return extract_json_from_response(response.content[0].text)
     
     async def _ensure_required_tools(self, requirements: Dict[str, Any]):
         """Ensure we have all necessary tools, build if needed"""
@@ -308,7 +341,7 @@ class ResearchAgent(BaseSpecializedAgent):
             messages=[{"role": "user", "content": prompt}]
         )
         
-        return json.loads(response.content[0].text)
+        return extract_json_from_response(response.content[0].text)
     
     async def _synthesize_findings(self, findings: List[Dict[str, Any]], query: str) -> str:
         """Synthesize research findings into coherent summary"""
@@ -331,7 +364,7 @@ class ResearchAgent(BaseSpecializedAgent):
         
         response = await self.anthropic.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=1000,
+            max_tokens=4000,
             messages=[{"role": "user", "content": prompt}]
         )
         
@@ -422,11 +455,11 @@ class CodeAgent(BaseSpecializedAgent):
         
         response = await self.anthropic.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=1000,
+            max_tokens=4000,
             messages=[{"role": "user", "content": prompt}]
         )
         
-        return json.loads(response.content[0].text)
+        return extract_json_from_response(response.content[0].text)
     
     async def _perform_phase_work(self, requirements: Dict[str, Any]) -> Dict[str, Any]:
         """Perform code-specific work"""
@@ -461,7 +494,7 @@ class CodeAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-sonnet-4-202505142",
+            model="claude-sonnet-4-20250514",
             max_tokens=2000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -541,7 +574,7 @@ class WriterAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-sonnet-4-202505142",
+            model="claude-sonnet-4-20250514",
             max_tokens=2000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -565,7 +598,7 @@ class WriterAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-sonnet-4-202505142",
+            model="claude-sonnet-4-20250514",
             max_tokens=2000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -625,12 +658,12 @@ class ToolBuilderAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-sonnet-4-202505142",
+            model="claude-sonnet-4-20250514",
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}]
         )
         
-        return json.loads(response.content[0].text)
+        return extract_json_from_response(response.content[0].text)
     
     async def _implement_tool(self, design: Dict[str, Any]) -> str:
         """Write the actual tool code"""
@@ -650,7 +683,7 @@ class ToolBuilderAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-sonnet-4-202505142",
+            model="claude-sonnet-4-20250514",
             max_tokens=2000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -688,7 +721,7 @@ class ToolBuilderAgent(BaseSpecializedAgent):
         """
         
         response = await self.anthropic.messages.create(
-            model="claude-sonnet-4-202505142",
+            model="claude-sonnet-4-20250514",
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}]
         )
